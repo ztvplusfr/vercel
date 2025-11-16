@@ -144,13 +144,13 @@ export default function MovieWatchPage() {
             })
           }
           
-          // Ajouter les sources Default (peut contenir VF ou VOSTFR, on met en VOSTFR par défaut)
+          // Ajouter les sources Default (peut contenir VF ou VOSTFR, on met en FR par défaut)
           if (players.Default && Array.isArray(players.Default)) {
             players.Default.forEach((source: any, index: number) => {
               allVideos.push({
                 url: source.url || '',
                 quality: source.quality || 'HD',
-                lang: 'VOSTFR', // Default est généralement VOSTFR
+                lang: 'FR', // Default peut contenir des VF, on classe comme FR
                 server: `FStream ${source.player || `Server ${index + 1}`}`,
                 pub: 0,
                 hasAds: false
