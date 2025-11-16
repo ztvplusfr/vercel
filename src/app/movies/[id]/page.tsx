@@ -109,9 +109,10 @@ export default function MovieDetailPage() {
         // Vérifier FStream
         if (fstreamResponse.status === 'fulfilled' && fstreamResponse.value.ok) {
           const data = await fstreamResponse.value.json();
-          const hasVF = data.players?.vf && Array.isArray(data.players.vf) && data.players.vf.length > 0;
-          const hasVOSTFR = data.players?.vostfr && Array.isArray(data.players.vostfr) && data.players.vostfr.length > 0;
-          hasVideos = hasVideos || hasVF || hasVOSTFR;
+          const hasVFQ = data.players?.VFQ && Array.isArray(data.players.VFQ) && data.players.VFQ.length > 0;
+          const hasVFF = data.players?.VFF && Array.isArray(data.players.VFF) && data.players.VFF.length > 0;
+          const hasDefault = data.players?.Default && Array.isArray(data.players.Default) && data.players.Default.length > 0;
+          hasVideos = hasVideos || hasVFQ || hasVFF || hasDefault;
         }
         
         setHasVideos(hasVideos);

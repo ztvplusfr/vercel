@@ -102,30 +102,44 @@ export default function MovieWatchPage() {
         if (data.players) {
           const players = data.players
           
-          // Ajouter les sources VF
-          if (players.vf && Array.isArray(players.vf)) {
-            players.vf.forEach((source: any, index: number) => {
+          // Ajouter les sources VFQ (Français Québec)
+          if (players.VFQ && Array.isArray(players.VFQ)) {
+            players.VFQ.forEach((source: any, index: number) => {
               allVideos.push({
                 url: source.url || '',
                 quality: source.quality || 'HD',
                 lang: 'FR',
-                server: `FStream ${source.name || `Server ${index + 1}`}`,
-                pub: source.pub ? 1 : 0,
-                hasAds: source.pub || false
+                server: `FStream ${source.player || `Server ${index + 1}`}`,
+                pub: 0, // FStream n'a pas de champ pub
+                hasAds: false
               })
             })
           }
           
-          // Ajouter les sources VOSTFR
-          if (players.vostfr && Array.isArray(players.vostfr)) {
-            players.vostfr.forEach((source: any, index: number) => {
+          // Ajouter les sources VFF (Français France)
+          if (players.VFF && Array.isArray(players.VFF)) {
+            players.VFF.forEach((source: any, index: number) => {
+              allVideos.push({
+                url: source.url || '',
+                quality: source.quality || 'HD',
+                lang: 'FR',
+                server: `FStream ${source.player || `Server ${index + 1}`}`,
+                pub: 0,
+                hasAds: false
+              })
+            })
+          }
+          
+          // Ajouter les sources Default (généralement VOSTFR)
+          if (players.Default && Array.isArray(players.Default)) {
+            players.Default.forEach((source: any, index: number) => {
               allVideos.push({
                 url: source.url || '',
                 quality: source.quality || 'HD',
                 lang: 'VOSTFR',
-                server: `FStream ${source.name || `Server ${index + 1}`}`,
-                pub: source.pub ? 1 : 0,
-                hasAds: source.pub || false
+                server: `FStream ${source.player || `Server ${index + 1}`}`,
+                pub: 0,
+                hasAds: false
               })
             })
           }
