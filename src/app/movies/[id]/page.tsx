@@ -80,28 +80,41 @@ export default function MovieDetailPage() {
       if (!movie) return;
 
       try {
-        // Appel direct à l'API Wiflix depuis le client
+        // Appel direct aux APIs depuis le client
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
         
-        const response = await fetch(`https://api.movix.club/api/wiflix/movie/${movie.id}`, {
-          signal: controller.signal
-        });
+        // Fetch Wiflix et FStream en parallèle
+        const [wiflixResponse, fstreamResponse] = await Promise.allSettled([
+          fetch(`https://api.movix.club/api/wiflix/movie/${movie.id}`, {
+            signal: controller.signal
+          }),
+          fetch(`https://api.movix.club/api/fstream/movie/${movie.id}`, {
+            signal: controller.signal
+          })
+        ]);
         
         clearTimeout(timeoutId);
         
-        if (!response.ok) {
-          setHasVideos(false);
-          return;
+        let hasVideos = false;
+        
+        // Vérifier Wiflix
+        if (wiflixResponse.status === 'fulfilled' && wiflixResponse.value.ok) {
+          const data = await wiflixResponse.value.json();
+          const hasVF = data.players?.vf && Array.isArray(data.players.vf) && data.players.vf.length > 0;
+          const hasVOSTFR = data.players?.vostfr && Array.isArray(data.players.vostfr) && data.players.vostfr.length > 0;
+          hasVideos = hasVideos || hasVF || hasVOSTFR;
         }
         
-        const data = await response.json();
+        // Vérifier FStream
+        if (fstreamResponse.status === 'fulfilled' && fstreamResponse.value.ok) {
+          const data = await fstreamResponse.value.json();
+          const hasVF = data.players?.vf && Array.isArray(data.players.vf) && data.players.vf.length > 0;
+          const hasVOSTFR = data.players?.vostfr && Array.isArray(data.players.vostfr) && data.players.vostfr.length > 0;
+          hasVideos = hasVideos || hasVF || hasVOSTFR;
+        }
         
-        // Vérifier s'il y a des sources dans players.vf ou players.vostfr
-        const hasVF = data.players?.vf && Array.isArray(data.players.vf) && data.players.vf.length > 0;
-        const hasVOSTFR = data.players?.vostfr && Array.isArray(data.players.vostfr) && data.players.vostfr.length > 0;
-        
-        setHasVideos(hasVF || hasVOSTFR);
+        setHasVideos(hasVideos);
       } catch {
         setHasVideos(false);
       }

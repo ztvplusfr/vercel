@@ -40,51 +40,95 @@ export default function MovieWatchPage() {
   // Fetcher les vidéos directement côté client pour contourner les restrictions CORS
   const fetchVideos = useCallback(async (movieId: string) => {
     try {
-      // Appel direct à l'API depuis le client avec timeout
+      // Appel direct aux APIs depuis le client avec timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
       
-      const response = await fetch(`https://api.movix.club/api/wiflix/movie/${movieId}`, {
-        signal: controller.signal
-      });
+      // Fetch Wiflix et FStream en parallèle
+      const [wiflixResponse, fstreamResponse] = await Promise.allSettled([
+        fetch(`https://api.movix.club/api/wiflix/movie/${movieId}`, {
+          signal: controller.signal
+        }),
+        fetch(`https://api.movix.club/api/fstream/movie/${movieId}`, {
+          signal: controller.signal
+        })
+      ]);
       
       clearTimeout(timeoutId);
       
-      if (!response.ok) throw new Error('Failed to fetch videos')
-      const data = await response.json()
-      
       const allVideos: MovieVideo[] = []
       
-      // Parser la structure Wiflix avec players.vf et players.vostfr
-      if (data.players) {
-        const players = data.players
+      // Parser Wiflix
+      if (wiflixResponse.status === 'fulfilled' && wiflixResponse.value.ok) {
+        const data = await wiflixResponse.value.json();
         
-        // Ajouter les sources VF
-        if (players.vf && Array.isArray(players.vf)) {
-          players.vf.forEach((source: any, index: number) => {
-            allVideos.push({
-              url: source.url || '',
-              quality: source.quality || 'HD',
-              lang: 'FR',
-              server: source.name || `Server ${index + 1}`,
-              pub: source.pub ? 1 : 0,
-              hasAds: source.pub || false
+        if (data.players) {
+          const players = data.players
+          
+          // Ajouter les sources VF
+          if (players.vf && Array.isArray(players.vf)) {
+            players.vf.forEach((source: any, index: number) => {
+              allVideos.push({
+                url: source.url || '',
+                quality: source.quality || 'HD',
+                lang: 'FR',
+                server: `Wiflix ${source.name || `Server ${index + 1}`}`,
+                pub: source.pub ? 1 : 0,
+                hasAds: source.pub || false
+              })
             })
-          })
+          }
+          
+          // Ajouter les sources VOSTFR
+          if (players.vostfr && Array.isArray(players.vostfr)) {
+            players.vostfr.forEach((source: any, index: number) => {
+              allVideos.push({
+                url: source.url || '',
+                quality: source.quality || 'HD',
+                lang: 'VOSTFR',
+                server: `Wiflix ${source.name || `Server ${index + 1}`}`,
+                pub: source.pub ? 1 : 0,
+                hasAds: source.pub || false
+              })
+            })
+          }
         }
+      }
+      
+      // Parser FStream
+      if (fstreamResponse.status === 'fulfilled' && fstreamResponse.value.ok) {
+        const data = await fstreamResponse.value.json();
         
-        // Ajouter les sources VOSTFR
-        if (players.vostfr && Array.isArray(players.vostfr)) {
-          players.vostfr.forEach((source: any, index: number) => {
-            allVideos.push({
-              url: source.url || '',
-              quality: source.quality || 'HD',
-              lang: 'VOSTFR',
-              server: source.name || `Server ${index + 1}`,
-              pub: source.pub ? 1 : 0,
-              hasAds: source.pub || false
+        if (data.players) {
+          const players = data.players
+          
+          // Ajouter les sources VF
+          if (players.vf && Array.isArray(players.vf)) {
+            players.vf.forEach((source: any, index: number) => {
+              allVideos.push({
+                url: source.url || '',
+                quality: source.quality || 'HD',
+                lang: 'FR',
+                server: `FStream ${source.name || `Server ${index + 1}`}`,
+                pub: source.pub ? 1 : 0,
+                hasAds: source.pub || false
+              })
             })
-          })
+          }
+          
+          // Ajouter les sources VOSTFR
+          if (players.vostfr && Array.isArray(players.vostfr)) {
+            players.vostfr.forEach((source: any, index: number) => {
+              allVideos.push({
+                url: source.url || '',
+                quality: source.quality || 'HD',
+                lang: 'VOSTFR',
+                server: `FStream ${source.name || `Server ${index + 1}`}`,
+                pub: source.pub ? 1 : 0,
+                hasAds: source.pub || false
+              })
+            })
+          }
         }
       }
       
