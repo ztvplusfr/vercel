@@ -27,6 +27,7 @@ export default function MovieWatchPage() {
   const [movie, setMovie] = useState<TMDBMovie | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedLang, setSelectedLang] = useState<'all' | 'FR' | 'VOSTFR'>('all');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,6 +75,20 @@ export default function MovieWatchPage() {
 
   const selectedVideo = videos[selectedIndex];
 
+  // Filtrer les vidéos selon la langue sélectionnée
+  const filteredVideos = videos.filter(video => {
+    if (selectedLang === 'all') return true;
+    return video.lang === selectedLang;
+  });
+
+  // Trouver l'index dans les vidéos filtrées
+  const filteredIndex = filteredVideos.findIndex(video => video.url === selectedVideo.url);
+  const handleFilteredSelect = (index: number) => {
+    const video = filteredVideos[index];
+    const originalIndex = videos.findIndex(v => v.url === video.url);
+    setSelectedIndex(originalIndex);
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Video Player Section */}
@@ -89,16 +104,6 @@ export default function MovieWatchPage() {
                 <span className="text-lg">←</span>
                 <span>Retour au détail du film</span>
               </button>
-              {selectedVideo && (
-                <div className="hidden md:flex text-xs md:text-sm text-gray-400">
-                  Serveur: {selectedVideo.server} • Version: {selectedVideo.lang?.toUpperCase() || 'FR'} • {selectedVideo.quality}
-                  {selectedVideo.hasAds && (
-                    <span className="ml-2 px-2 py-0.5 bg-yellow-600/30 text-yellow-400 rounded text-xs">
-                      ⚠️ Contient des pubs
-                    </span>
-                  )}
-                </div>
-              )}
             </div>
 
             {loading ? (
@@ -122,92 +127,188 @@ export default function MovieWatchPage() {
                 </button>
               </div>
               ) : (
-              <div className="w-full max-w-6xl">
-                <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-2xl mb-4">
-                  <iframe
-                    key={selectedVideo.url}
-                    src={selectedVideo.url}
-                    allowFullScreen
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full border-0"
-                  />
-                </div>
-
-                {/* Infos film principales */}
-                {movie && (
-                  <div className="space-y-2 mb-4">
-                    <h1 className="text-2xl md:text-3xl font-bold">
-                      {movie.title}
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-3 text-xs md:text-sm text-gray-300">
-                      <span>{new Date(movie.release_date).getFullYear()}</span>
-                      <span>•</span>
-                      <span>
-                        {movie.runtime ? `${movie.runtime} min` : "Durée inconnue"}
-                      </span>
-                      <span>•</span>
-                      <span>{movie.vote_average.toFixed(1)} ⭐</span>
+              <div className="w-full">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  {/* Colonne principale : Lecteur vidéo et infos */}
+                  <div className="lg:col-span-3">
+                    <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-2xl mb-4">
+                      <iframe
+                        key={selectedVideo.url}
+                        src={selectedVideo.url}
+                        allowFullScreen
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full border-0"
+                      />
                     </div>
-                    {movie.overview && (
-                      <p className="text-xs md:text-sm text-gray-400 line-clamp-3 md:line-clamp-4">
-                        {movie.overview}
-                      </p>
-                    )}
-                  </div>
-                )}
 
-                {selectedVideo && (
-                  <div className="mt-2 text-xs md:text-sm text-gray-400 md:hidden">
-                    Serveur: {selectedVideo.server} • Version: {selectedVideo.lang?.toUpperCase() || 'FR'} • {selectedVideo.quality}
-                    {selectedVideo.hasAds && (
-                      <span className="ml-2 px-2 py-0.5 bg-yellow-600/30 text-yellow-400 rounded text-xs">
-                        ⚠️ Contient des pubs
-                      </span>
+                    {/* Infos film principales */}
+                    {movie && (
+                      <div className="space-y-4 mb-4">
+                        {/* Titre et informations avec affiche */}
+                        <div className="flex gap-4">
+                          {/* Poster du film */}
+                          {movie.poster_path && (
+                            <div className="hidden md:block">
+                              <img
+                                src={`https://image.tmdb.org/t/p/w154${movie.poster_path}`}
+                                alt={movie.title}
+                                className="w-24 h-36 object-cover rounded-lg shadow-lg"
+                              />
+                            </div>
+                          )}
+                          
+                          {/* Titre et informations */}
+                          <div className="flex-1">
+                            <h1 className="text-2xl md:text-3xl font-bold mb-2">
+                              {movie.title}
+                            </h1>
+                            <div className="flex flex-wrap items-center gap-3 text-xs md:text-sm text-gray-300 mb-2">
+                              <span>{new Date(movie.release_date).getFullYear()}</span>
+                              <span>•</span>
+                              <span>
+                                {movie.runtime ? `${movie.runtime} min` : "Durée inconnue"}
+                              </span>
+                              <span>•</span>
+                              <span>{movie.vote_average.toFixed(1)} ⭐</span>
+                            </div>
+                            
+                            {/* Infos vidéo sous forme de badges */}
+                            {selectedVideo && (
+                              <div className="flex flex-wrap gap-2">
+                                <span className="px-2 py-1 bg-gray-700 text-gray-200 rounded text-xs font-medium">
+                                  📺 {selectedVideo.server || 'Source'}
+                                </span>
+                                <span className="px-2 py-1 bg-blue-600/30 text-blue-400 rounded text-xs font-medium">
+                                  🌍 {selectedVideo.lang?.toUpperCase() || 'FR'}
+                                </span>
+                                <span className="px-2 py-1 bg-green-600/30 text-green-400 rounded text-xs font-medium">
+                                  🎥 {selectedVideo.quality}
+                                </span>
+                                {selectedVideo.hasAds && (
+                                  <span className="px-2 py-1 bg-yellow-600/30 text-yellow-400 rounded text-xs font-medium">
+                                    ⚠️ Contient des pubs
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Synopsis sur toute la largeur */}
+                        {movie.overview && (
+                          <div className="w-full">
+                            <p className="text-xs md:text-sm text-gray-400 line-clamp-3 md:line-clamp-4">
+                              {movie.overview}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Version mobile uniquement */}
+                    {selectedVideo && (
+                      <div className="mt-2 text-xs md:text-sm text-gray-400 md:hidden">
+                        Serveur: {selectedVideo.server} • Version: {selectedVideo.lang?.toUpperCase() || 'FR'} • {selectedVideo.quality}
+                        {selectedVideo.hasAds && (
+                          <span className="ml-2 px-2 py-0.5 bg-yellow-600/30 text-yellow-400 rounded text-xs">
+                            ⚠️ Contient des pubs
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
+
+                  {/* Colonne droite : Sources avec scroll */}
+                  <div className="lg:col-span-1">
+                    <div className="lg:sticky lg:top-24 lg:h-screen lg:overflow-y-auto">
+                      <div className="pb-20">
+                        <h3 className="text-lg font-semibold mb-3 text-white">
+                          Sources
+                        </h3>
+                        <p className="text-xs text-gray-400 mb-4">
+                          Choisissez une source si la lecture rencontre un problème.
+                        </p>
+                        
+                        {/* Onglets de filtrage par langue */}
+                        <div className="flex gap-1 mb-4 bg-gray-800 rounded-lg p-1">
+                          <button
+                            onClick={() => setSelectedLang('all')}
+                            className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
+                              selectedLang === 'all'
+                                ? "bg-red-600 text-white"
+                                : "text-gray-400 hover:text-white hover:bg-gray-700"
+                            }`}
+                          >
+                            Toutes ({videos.length})
+                          </button>
+                          <button
+                            onClick={() => setSelectedLang('FR')}
+                            className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
+                              selectedLang === 'FR'
+                                ? "bg-red-600 text-white"
+                                : "text-gray-400 hover:text-white hover:bg-gray-700"
+                            }`}
+                          >
+                            VF ({videos.filter(v => v.lang === 'FR').length})
+                          </button>
+                          <button
+                            onClick={() => setSelectedLang('VOSTFR')}
+                            className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
+                              selectedLang === 'VOSTFR'
+                                ? "bg-red-600 text-white"
+                                : "text-gray-400 hover:text-white hover:bg-gray-700"
+                            }`}
+                          >
+                            VOSTFR ({videos.filter(v => v.lang === 'VOSTFR').length})
+                          </button>
+                        </div>
+                        
+                        {/* Liste des sources filtrées */}
+                        <div className="space-y-2">
+                          {filteredVideos.length > 0 ? (
+                            filteredVideos.map((video, index) => (
+                              <button
+                                key={video.url}
+                                onClick={() => handleFilteredSelect(index)}
+                                className={`w-full px-3 py-3 rounded-lg text-sm border transition-colors text-left ${
+                                  index === filteredIndex
+                                    ? "bg-red-600 border-red-600 text-white"
+                                    : "bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700"
+                                }`}
+                              >
+                                <div className="space-y-1">
+                                  <div className="font-medium text-sm">
+                                    {video.server || 'Source'}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-xs opacity-80">
+                                    <span>{video.lang?.toUpperCase() || 'FR'}</span>
+                                    <span>•</span>
+                                    <span>{video.quality}</span>
+                                  </div>
+                                  {video.hasAds && (
+                                    <div className="text-xs">
+                                      <span className="px-1.5 py-0.5 bg-yellow-600/30 text-yellow-400 rounded">
+                                        ⚠️ Contient des pubs
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="text-center py-8 text-gray-400">
+                              <p className="text-sm">Aucune source {selectedLang === 'FR' ? 'VF' : selectedLang === 'VOSTFR' ? 'VOSTFR' : ''} disponible</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </div>
-
-        {/* Section sources, style similaire aux autres pages */}
-        {!loading && !error && (
-          <div className="px-4 md:px-8 lg:px-16 py-6 md:py-8 bg-black">
-            <h2 className="text-lg md:text-xl font-semibold mb-3">
-              Sources disponibles
-            </h2>
-            <p className="text-xs md:text-sm text-gray-400 mb-3">
-              Choisissez une autre source si la lecture rencontre un problème.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {videos.map((video, index) => (
-                <button
-                  key={video.url}
-                  onClick={() => setSelectedIndex(index)}
-                  className={`px-3 py-2 rounded-md text-xs md:text-sm border transition-colors ${
-                    index === selectedIndex
-                      ? "bg-red-600 border-red-600 text-white"
-                      : "bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{video.server || 'Source'}</span>
-                    <span>•</span>
-                    <span>{video.lang?.toUpperCase() || 'FR'}</span>
-                    <span>•</span>
-                    <span>{video.quality}</span>
-                    {video.hasAds && (
-                      <span className="px-1.5 py-0.5 bg-yellow-600/30 text-yellow-400 rounded text-xs">
-                        ⚠️ Pubs
-                      </span>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

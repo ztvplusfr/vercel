@@ -87,17 +87,27 @@ export async function GET(
       try {
         const wiflixUrl = `https://api.movix.club/api/wiflix/series/${id}/${season}/${episode}`;
         const wiflixResponse = await fetch(wiflixUrl);
-        
+
         if (wiflixResponse.ok) {
           const wiflixData = await wiflixResponse.json();
-          if (wiflixData.url) {
-            allVideos.push({
-              url: wiflixData.url,
-              lang: wiflixData.lang || 'FR',
-              quality: wiflixData.quality || 'HD',
-              pub: wiflixData.pub || 0,
-              server: 'Wiflix',
-              hasAds: true
+          if (wiflixData.players) {
+            // Parcourir les différentes langues disponibles (vf en premier, puis vostfr)
+            const languages = ['vf', 'vostfr'];
+            languages.forEach(lang => {
+              if (wiflixData.players[lang]) {
+                wiflixData.players[lang].forEach((player: any) => {
+                  if (player.url) {
+                    allVideos.push({
+                      url: player.url,
+                      lang: lang === 'vf' ? 'FR' : 'VOSTFR',
+                      quality: 'HD',
+                      pub: 0,
+                      server: `Wiflix - ${player.name}`,
+                      hasAds: true
+                    });
+                  }
+                });
+              }
             });
           }
         }
@@ -106,10 +116,23 @@ export async function GET(
       }
     }
 
-    // Trier les vidéos : d'abord celles sans pubs, puis celles avec pubs
+    // Trier les vidéos : d'abord celles sans pubs, puis celles avec pubs, et en priorité FR/VF
     allVideos.sort((a, b) => {
-      if (a.hasAds === b.hasAds) return 0;
-      return a.hasAds ? 1 : -1;
+      // D'abord trier par présence de pubs
+      if (a.hasAds !== b.hasAds) {
+        return a.hasAds ? 1 : -1;
+      }
+      
+      // Ensuite trier par langue (FR/VF en premier)
+      const langPriority = { 'FR': 0, 'VF': 0, 'VOSTFR': 1 };
+      const aLangPriority = langPriority[a.lang as keyof typeof langPriority] ?? 2;
+      const bLangPriority = langPriority[b.lang as keyof typeof langPriority] ?? 2;
+      
+      if (aLangPriority !== bLangPriority) {
+        return aLangPriority - bLangPriority;
+      }
+      
+      return 0;
     });
 
     return NextResponse.json({ videos: allVideos });
