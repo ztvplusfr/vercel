@@ -11,6 +11,8 @@ interface MovieVideo {
   lang: string;
   quality: string;
   pub: number;
+  server?: string;
+  hasAds?: boolean;
 }
 
 interface MovieVideosResponse {
@@ -89,8 +91,12 @@ export default function MovieWatchPage() {
               </button>
               {selectedVideo && (
                 <div className="hidden md:flex text-xs md:text-sm text-gray-400">
-                  Version&nbsp;: {selectedVideo.lang.toUpperCase()} •{" "}
-                  {selectedVideo.quality}
+                  Serveur: {selectedVideo.server} • Version: {selectedVideo.lang?.toUpperCase() || 'FR'} • {selectedVideo.quality}
+                  {selectedVideo.hasAds && (
+                    <span className="ml-2 px-2 py-0.5 bg-yellow-600/30 text-yellow-400 rounded text-xs">
+                      ⚠️ Contient des pubs
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -152,8 +158,12 @@ export default function MovieWatchPage() {
 
                 {selectedVideo && (
                   <div className="mt-2 text-xs md:text-sm text-gray-400 md:hidden">
-                    Version&nbsp;: {selectedVideo.lang.toUpperCase()} •{" "}
-                    {selectedVideo.quality}
+                    Serveur: {selectedVideo.server} • Version: {selectedVideo.lang?.toUpperCase() || 'FR'} • {selectedVideo.quality}
+                    {selectedVideo.hasAds && (
+                      <span className="ml-2 px-2 py-0.5 bg-yellow-600/30 text-yellow-400 rounded text-xs">
+                        ⚠️ Contient des pubs
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -181,8 +191,18 @@ export default function MovieWatchPage() {
                       : "bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700"
                   }`}
                 >
-                  {video.lang.toUpperCase()} • {video.quality}
-                  {video.pub ? " • VOST" : ""}
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{video.server || 'Source'}</span>
+                    <span>•</span>
+                    <span>{video.lang?.toUpperCase() || 'FR'}</span>
+                    <span>•</span>
+                    <span>{video.quality}</span>
+                    {video.hasAds && (
+                      <span className="px-1.5 py-0.5 bg-yellow-600/30 text-yellow-400 rounded text-xs">
+                        ⚠️ Pubs
+                      </span>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>

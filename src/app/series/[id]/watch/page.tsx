@@ -11,6 +11,8 @@ interface EpisodeVideo {
   lang: string;
   quality: string;
   pub: number;
+  server?: string;
+  hasAds?: boolean;
 }
 
 interface EpisodeVideosResponse {
@@ -230,6 +232,24 @@ export default function SeriesWatchPage() {
                         />
                       </div>
 
+                      {/* Infos de la source actuelle */}
+                      {selectedVideo && (
+                        <div className="bg-gray-900/30 backdrop-blur-sm rounded-lg px-4 py-2 mb-4">
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="text-gray-300">
+                              <span className="font-medium">Serveur:</span> {selectedVideo.server || 'Source'} • 
+                              <span className="font-medium ml-2">Version:</span> {selectedVideo.lang?.toUpperCase() || 'FR'} • 
+                              <span className="font-medium ml-2">Qualité:</span> {selectedVideo.quality}
+                            </div>
+                            {selectedVideo.hasAds && (
+                              <span className="px-2 py-1 bg-yellow-600/30 text-yellow-400 rounded text-xs font-medium">
+                                ⚠️ Contient des pubs
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Infos série et épisode sous le lecteur */}
                       <div className="space-y-4">
                         {/* Infos série */}
@@ -305,7 +325,8 @@ export default function SeriesWatchPage() {
                                   >
                                     {videos.map((video, index) => (
                                       <option key={index} value={index}>
-                                        {video.lang.toUpperCase()} • {video.quality}
+                                        {video.server || 'Source'} • {video.lang?.toUpperCase() || 'FR'} • {video.quality}
+                                        {video.hasAds && ' ⚠️ Pubs'}
                                       </option>
                                     ))}
                                   </select>
