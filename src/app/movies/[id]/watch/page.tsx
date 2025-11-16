@@ -6,6 +6,14 @@ import { tmdbApi, TMDBMovie } from "@/lib/tmdb";
 import Image from "next/image";
 import { Download, ExternalLink, Play, Settings } from "lucide-react";
 
+interface VideoSource {
+  url: string;
+  quality: string;
+  lang: string;
+  server: string;
+  pub: boolean;
+}
+
 interface MovieVideo {
   url: string;
   lang: string;
@@ -29,6 +37,70 @@ export default function MovieWatchPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedLang, setSelectedLang] = useState<'all' | 'FR' | 'VOSTFR'>('all');
 
+  // Fetcher les vidéos directement côté client pour contourner les restrictions CORS
+  const fetchVideos = async () => {
+    try {
+      // Appel direct à l'API depuis le client
+      const response = await fetch(`https://api.movix.club/api/wiflix/movie/${params.id}`)
+      if (!response.ok) throw new Error('Failed to fetch videos')
+      const data = await response.json()
+      
+      const allVideos: MovieVideo[] = []
+      
+      // Parser la structure Wiflix avec players.vf et players.vostfr
+      if (data.players) {
+        const players = data.players
+        
+        // Ajouter les sources VF
+        if (players.vf && Array.isArray(players.vf)) {
+          players.vf.forEach((source: any, index: number) => {
+            allVideos.push({
+              url: source.url || '',
+              quality: source.quality || 'HD',
+              lang: 'FR',
+              server: source.name || `Server ${index + 1}`,
+              pub: source.pub ? 1 : 0,
+              hasAds: source.pub || false
+            })
+          })
+        }
+        
+        // Ajouter les sources VOSTFR
+        if (players.vostfr && Array.isArray(players.vostfr)) {
+          players.vostfr.forEach((source: any, index: number) => {
+            allVideos.push({
+              url: source.url || '',
+              quality: source.quality || 'HD',
+              lang: 'VOSTFR',
+              server: source.name || `Server ${index + 1}`,
+              pub: source.pub ? 1 : 0,
+              hasAds: source.pub || false
+            })
+          })
+        }
+      }
+      
+      // Trier les vidéos : sans pubs en premier, puis FR/VF en priorité
+      const sortedVideos = allVideos.sort((a, b) => {
+        // D'abord trier par présence de pubs (sans pubs en premier)
+        if (a.pub !== b.pub) {
+          return a.pub ? 1 : -1
+        }
+        // Ensuite trier par langue (FR/VF en premier)
+        if (a.lang === 'FR' && b.lang !== 'FR') return -1
+        if (a.lang !== 'FR' && b.lang === 'FR') return 1
+        return 0
+      })
+      
+      setVideos(sortedVideos)
+      if (sortedVideos.length > 0) {
+        setSelectedIndex(0)
+      }
+    } catch (error) {
+      console.error('Error fetching videos:', error)
+    }
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -42,21 +114,7 @@ export default function MovieWatchPage() {
         const movieDetails = await tmdbApi.getMovieDetails(movieId);
         setMovie(movieDetails as TMDBMovie);
 
-        // Sources vidéo via notre API
-        const res = await fetch(`/api/movies/${movieId}`);
-        if (!res.ok) {
-          setError("Aucune source vidéo trouvée pour ce film");
-          return;
-        }
-
-        const data = (await res.json()) as MovieVideosResponse;
-        if (!data.videos || data.videos.length === 0) {
-          setError("Aucune source vidéo disponible");
-          return;
-        }
-
-        setVideos(data.videos);
-        setSelectedIndex(0);
+        await fetchVideos();
       } catch (err) {
         console.error("Error fetching movie videos:", err);
         setError("Erreur lors du chargement des vidéos");
