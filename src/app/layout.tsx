@@ -32,7 +32,7 @@ export default function RootLayout({
         <div className="min-h-screen bg-black text-white">
           <Navbar />
           <div className="bg-yellow-600/90 text-yellow-50 px-4 py-2 text-center text-sm font-medium border-b border-yellow-700">
-            ⚠️ Certains programmes peuvent ne pas être disponibles - Disponibilité variable selon les régions
+            ⚠️ Certains programmes peuvent ne pas être disponibles
           </div>
           <main className="flex-1">
             {children}

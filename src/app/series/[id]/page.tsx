@@ -12,6 +12,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { ImageModal } from '@/components/ImageModal';
 
 export default function TVShowDetailPage() {
   const params = useParams();
@@ -24,6 +25,7 @@ export default function TVShowDetailPage() {
   const [episodesLoading, setEpisodesLoading] = useState(true);
   const [episodesWithVideos, setEpisodesWithVideos] = useState<Set<number>>(new Set());
   const [episodesWithoutVideos, setEpisodesWithoutVideos] = useState<Set<number>>(new Set());
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -180,7 +182,8 @@ export default function TVShowDetailPage() {
                     alt={tvShow.name}
                     width={260}
                     height={390}
-                    className="rounded-lg shadow-2xl"
+                    className="rounded-lg shadow-2xl cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => setModalImage({ src: posterUrl, alt: tvShow.name })}
                   />
                 </div>
               )}
@@ -276,7 +279,7 @@ export default function TVShowDetailPage() {
                     return (
                     <div
                       key={episode.id}
-                      className={`p-3 md:p-4 rounded-lg transition-colors max-w-4xl ${
+                      className={`p-3 md:p-4 rounded-lg transition-colors max-w-4xl relative ${
                         hasVideo
                           ? "bg-gray-900/70 hover:bg-gray-900 cursor-pointer"
                           : "bg-gray-900/50 opacity-50 cursor-not-allowed"
@@ -289,6 +292,18 @@ export default function TVShowDetailPage() {
                         }
                       }}
                     >
+                      {/* Badge de disponibilité */}
+                      <div className="absolute top-2 right-2 z-10">
+                        {hasVideo ? (
+                          <span className="text-xs text-white bg-green-600 px-2 py-1 rounded-full font-semibold shadow-lg">
+                            Disponible
+                          </span>
+                        ) : (
+                          <span className="text-xs text-white bg-red-600 px-2 py-1 rounded-full font-semibold shadow-lg">
+                            Indisponible
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-col md:flex-row gap-3 md:gap-4">
                         {episode.still_path && (
                           <div className="w-full md:w-64 h-40 md:h-36 rounded-md overflow-hidden bg-gray-800 flex-shrink-0">
@@ -306,33 +321,17 @@ export default function TVShowDetailPage() {
                         )}
                         <div className="flex-1 flex flex-col justify-between text-left">
                           <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-sm font-semibold text-white">
-                                  Épisode {episode.episode_number}
-                                </span>
-                                <span className={`text-sm ${
-                                  hasVideo ? "text-gray-300" : "text-gray-500"
-                                }`}>
-                                  {episode.name}
-                                </span>
-                                {!hasVideo && (
-                                  <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">
-                                    Indisponible
-                                  </span>
-                                )}
-                              </div>
-                              {episode.runtime && (
-                                <span className="text-xs text-gray-400">
-                                  {episode.runtime} min
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs md:text-sm text-gray-400 line-clamp-3">
-                              {episode.overview ||
-                                'Pas de description disponible.'}
-                            </p>
+                            <span
+                              className={`text-sm font-medium ${
+                                hasVideo ? "text-white" : "text-gray-400"
+                              }`}>
+                              {episode.name}
+                            </span>
                           </div>
+                          <p className="text-xs md:text-sm text-gray-400 line-clamp-3">
+                            {episode.overview ||
+                              'Pas de description disponible.'}
+                          </p>
                           {episode.air_date && (
                             <div className="mt-2 text-[11px] text-gray-500">
                               {new Date(
@@ -415,13 +414,17 @@ export default function TVShowDetailPage() {
                       key={`${img.file_path}-${index}`}
                       className="basis-2/3 sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
                     >
-                      <div className="w-full h-40 md:h-52 rounded-lg overflow-hidden bg-gray-800">
+                      <div className="w-full h-40 md:h-52 rounded-lg overflow-hidden bg-gray-800 cursor-pointer hover:opacity-90 transition-opacity">
                         <Image
                           src={tmdbApi.getImageUrl(img.file_path) || '/placeholder-hero.jpg'}
                           alt={`Image ${index + 1} de ${tvShow.name}`}
                           width={480}
                           height={270}
                           className="w-full h-full object-cover"
+                          onClick={() => setModalImage({ 
+                            src: tmdbApi.getImageUrl(img.file_path) || '/placeholder-hero.jpg', 
+                            alt: `Image ${index + 1} de ${tvShow.name}` 
+                          })}
                         />
                       </div>
                     </CarouselItem>
@@ -435,6 +438,14 @@ export default function TVShowDetailPage() {
           </div>
         </div>
       </div>
+      
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={modalImage !== null}
+        onClose={() => setModalImage(null)}
+        src={modalImage?.src || ''}
+        alt={modalImage?.alt || ''}
+      />
     </div>
   );
 }

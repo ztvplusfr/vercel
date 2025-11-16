@@ -390,37 +390,6 @@ export default function SeriesWatchPage() {
                           {episodes.map((episode, index) => {
                             const hasVideo = !episodesWithoutVideos.has(episode.episode_number);
                             const isCurrentEpisode = episode.episode_number === parseInt(episodeParam);
-                            
-                            return (
-                            <button
-                              key={episode.id}
-                              onClick={() => handleEpisodeClick(episode.episode_number)}
-                              className={`w-full text-left border-b border-gray-800/50 transition-all duration-200 relative ${
-                                isCurrentEpisode
-                                  ? "bg-gray-800/80 shadow-lg"
-                                  : hasVideo
-                                  ? "hover:bg-gray-800/40"
-                                  : "opacity-50 cursor-not-allowed"
-                              }`}
-                              disabled={!hasVideo && !isCurrentEpisode}
-                            >
-                              {/* Badge de disponibilité */}
-                              <div className="absolute top-2 right-2 z-10">
-                                {hasVideo ? (
-                                  <span className="text-xs text-white bg-green-600 px-1.5 py-0.5 rounded-full font-semibold shadow-lg">
-                                    ✓
-                                  </span>
-                                ) : (
-                                  <span className="text-xs text-white bg-red-600 px-1.5 py-0.5 rounded-full font-semibold shadow-lg">
-                                    ✗
-                                  </span>
-                                )}
-                              </div>
-                              <div className="p-4">
-                                <div className="flex gap-4">
-                                  {/* Thumbnail */}
-                                  <div className="relative flex-shrink-0">
-                                    {episode.still_path ? (
                                       <img
                                         src={tmdbApi.getImageUrl(episode.still_path) || ''}
                                         alt={episode.name}

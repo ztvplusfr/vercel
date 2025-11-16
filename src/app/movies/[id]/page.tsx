@@ -12,6 +12,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { ImageModal } from '@/components/ImageModal';
 
 export default function MovieDetailPage() {
   const params = useParams();
@@ -20,6 +21,7 @@ export default function MovieDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasVideos, setHasVideos] = useState<boolean | null>(null);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -146,7 +148,8 @@ export default function MovieDetailPage() {
                     alt={movie.title}
                     width={260}
                     height={390}
-                    className="rounded-lg shadow-2xl"
+                    className="rounded-lg shadow-2xl cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => setModalImage({ src: posterUrl, alt: movie.title })}
                   />
                 </div>
               )}
@@ -278,13 +281,17 @@ export default function MovieDetailPage() {
                       key={`${img.file_path}-${index}`}
                       className="basis-2/3 sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
                     >
-                      <div className="w-full h-40 md:h-52 rounded-lg overflow-hidden bg-gray-800">
+                      <div className="w-full h-40 md:h-52 rounded-lg overflow-hidden bg-gray-800 cursor-pointer hover:opacity-90 transition-opacity">
                         <Image
                           src={tmdbApi.getImageUrl(img.file_path) || '/placeholder-hero.jpg'}
                           alt={`Image ${index + 1} de ${movie.title}`}
                           width={480}
                           height={270}
                           className="w-full h-full object-cover"
+                          onClick={() => setModalImage({ 
+                            src: tmdbApi.getImageUrl(img.file_path) || '/placeholder-hero.jpg', 
+                            alt: `Image ${index + 1} de ${movie.title}` 
+                          })}
                         />
                       </div>
                     </CarouselItem>
@@ -298,6 +305,14 @@ export default function MovieDetailPage() {
           </div>
         </div>
       </div>
+      
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={modalImage !== null}
+        onClose={() => setModalImage(null)}
+        src={modalImage?.src || ''}
+        alt={modalImage?.alt || ''}
+      />
     </div>
   );
 }
