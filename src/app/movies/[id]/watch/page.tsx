@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { tmdbApi, TMDBMovie } from "@/lib/tmdb";
 import Image from "next/image";
@@ -38,10 +38,18 @@ export default function MovieWatchPage() {
   const [selectedLang, setSelectedLang] = useState<'all' | 'FR' | 'VOSTFR'>('all');
 
   // Fetcher les vidéos directement côté client pour contourner les restrictions CORS
-  const fetchVideos = async () => {
+  const fetchVideos = useCallback(async (movieId: string) => {
     try {
-      // Appel direct à l'API depuis le client
-      const response = await fetch(`https://api.movix.club/api/wiflix/movie/${params.id}`)
+      // Appel direct à l'API depuis le client avec timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch(`https://api.movix.club/api/wiflix/movie/${movieId}`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (!response.ok) throw new Error('Failed to fetch videos')
       const data = await response.json()
       
@@ -97,9 +105,15 @@ export default function MovieWatchPage() {
         setSelectedIndex(0)
       }
     } catch (error) {
-      console.error('Error fetching videos:', error)
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('Request timeout:', error)
+        setError('Le chargement des vidéos prend trop de temps')
+      } else {
+        console.error('Error fetching videos:', error)
+        setError('Erreur lors du chargement des vidéos')
+      }
     }
-  }
+  }, [])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -114,7 +128,7 @@ export default function MovieWatchPage() {
         const movieDetails = await tmdbApi.getMovieDetails(movieId);
         setMovie(movieDetails as TMDBMovie);
 
-        await fetchVideos();
+        await fetchVideos(movieId);
       } catch (err) {
         console.error("Error fetching movie videos:", err);
         setError("Erreur lors du chargement des vidéos");
@@ -124,7 +138,7 @@ export default function MovieWatchPage() {
     };
 
     fetchData();
-  }, [params.id]);
+  }, [params.id, fetchVideos]);
 
   const handleBackToDetails = () => {
     const movieId = params.id as string;
