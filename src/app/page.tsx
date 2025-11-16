@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { tmdbApi, TMDBMovie, TMDBTVShow } from '@/lib/tmdb';
-import { HeroSection } from '@/components/HeroSection';
-import { ContentRow } from '@/components/ContentRow';
+import { ContentGrid } from '@/components/ContentGrid';
+import { ChevronRight, TrendingUp, Star, Calendar, Play } from 'lucide-react';
+
+type TMDBContent = TMDBMovie | TMDBTVShow;
+
 import { RankedRow } from '@/components/RankedRow';
 import { CarouselRow } from '@/components/CarouselRow';
+import { HeroSection } from '@/components/HeroSection';
 
 export default function Home() {
   const [trending, setTrending] = useState<TMDBContent[]>([]);
