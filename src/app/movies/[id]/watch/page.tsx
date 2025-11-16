@@ -130,13 +130,27 @@ export default function MovieWatchPage() {
             })
           }
           
-          // Ajouter les sources Default (généralement VOSTFR)
+          // Ajouter les sources VOSTFR direct
+          if (players.VOSTFR && Array.isArray(players.VOSTFR)) {
+            players.VOSTFR.forEach((source: any, index: number) => {
+              allVideos.push({
+                url: source.url || '',
+                quality: source.quality || 'HD',
+                lang: 'VOSTFR',
+                server: `FStream ${source.player || `Server ${index + 1}`}`,
+                pub: 0,
+                hasAds: false
+              })
+            })
+          }
+          
+          // Ajouter les sources Default (peut contenir VF ou VOSTFR, on met en VOSTFR par défaut)
           if (players.Default && Array.isArray(players.Default)) {
             players.Default.forEach((source: any, index: number) => {
               allVideos.push({
                 url: source.url || '',
                 quality: source.quality || 'HD',
-                lang: 'VOSTFR',
+                lang: 'VOSTFR', // Default est généralement VOSTFR
                 server: `FStream ${source.player || `Server ${index + 1}`}`,
                 pub: 0,
                 hasAds: false

@@ -111,8 +111,9 @@ export default function MovieDetailPage() {
           const data = await fstreamResponse.value.json();
           const hasVFQ = data.players?.VFQ && Array.isArray(data.players.VFQ) && data.players.VFQ.length > 0;
           const hasVFF = data.players?.VFF && Array.isArray(data.players.VFF) && data.players.VFF.length > 0;
+          const hasVOSTFR = data.players?.VOSTFR && Array.isArray(data.players.VOSTFR) && data.players.VOSTFR.length > 0;
           const hasDefault = data.players?.Default && Array.isArray(data.players.Default) && data.players.Default.length > 0;
-          hasVideos = hasVideos || hasVFQ || hasVFF || hasDefault;
+          hasVideos = hasVideos || hasVFQ || hasVFF || hasVOSTFR || hasDefault;
         }
         
         setHasVideos(hasVideos);
