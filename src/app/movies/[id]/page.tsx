@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
 import { tmdbApi, TMDBMovie, TMDBCastMember, TMDBImage } from '@/lib/tmdb';
 import Image from 'next/image';
 import { Play, Share2 } from 'lucide-react';
@@ -21,6 +20,28 @@ export default function MovieDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasVideos, setHasVideos] = useState<boolean | null>(null);
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: movie?.title || 'Film',
+          text: `Regarde "${movie?.title}" sur ZTVPlus!`,
+          url: window.location.href
+        });
+      } catch (err) {
+        console.log('Partage annulé');
+      }
+    } else {
+      // Fallback pour les navigateurs qui ne supportent pas Web Share API
+      navigator.clipboard.writeText(window.location.href);
+      alert('Lien copié dans le presse-papiers!');
+    }
+  };
+
+  const handleBack = () => {
+    router.back();
+  };
 
   useEffect(() => {
     const fetchMovie = async () => {
@@ -75,7 +96,6 @@ export default function MovieDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white">
-        <Navbar />
         <div className="pt-16 flex items-center justify-center min-h-screen">
           <div className="text-xl">Chargement...</div>
         </div>
@@ -86,7 +106,6 @@ export default function MovieDetailPage() {
   if (error || !movie) {
     return (
       <div className="min-h-screen bg-black text-white">
-        <Navbar />
         <div className="pt-16 flex items-center justify-center min-h-screen">
           <div className="text-xl text-red-500">{error || 'Film non trouvé'}</div>
         </div>
@@ -99,7 +118,6 @@ export default function MovieDetailPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Navbar />
 
       {/* Hero Section */}
       <div className="relative h-[70vh]">
@@ -181,7 +199,7 @@ export default function MovieDetailPage() {
                     <Play className="w-5 h-5 md:w-6 md:h-6" />
                     <span>{hasVideos === false ? 'Lecture indisponible' : 'Lecture'}</span>
                   </button>
-                  <button className="flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 bg-gray-700 bg-opacity-80 text-white rounded-md hover:bg-gray-600 transition-colors text-sm md:text-base">
+                  <button onClick={handleShare} className="flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 bg-gray-700 bg-opacity-80 text-white rounded-md hover:bg-gray-600 transition-colors text-sm md:text-base">
                     <Share2 className="w-5 h-5 md:w-6 md:h-6" />
                     <span>Partager</span>
                   </button>

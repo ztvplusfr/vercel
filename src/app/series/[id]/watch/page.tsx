@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Navbar } from "@/components/Navbar";
-import { tmdbApi, TMDBTVShow, TMDBEpisode } from "@/lib/tmdb";
+import { tmdbApi, TMDBEpisode, TMDBTVShow } from "@/lib/tmdb";
+import Image from "next/image";
+import { ChevronLeft, ChevronRight, Download, ExternalLink, Play, SkipBack, SkipForward, Settings } from "lucide-react";
 
 interface EpisodeVideo {
   url: string;
@@ -164,8 +165,7 @@ export default function SeriesWatchPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Navbar />
-
+      {/* Video Player Section */}
       <div className="pt-16">
         {/* Zone player type "hero" */}
         <div className="bg-gradient-to-b from-black via-black/80 to-black">

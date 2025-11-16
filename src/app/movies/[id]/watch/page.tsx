@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Navbar } from "@/components/Navbar";
 import { tmdbApi, TMDBMovie } from "@/lib/tmdb";
+import Image from "next/image";
+import { Download, ExternalLink, Play, Settings } from "lucide-react";
 
 interface MovieVideo {
   url: string;
@@ -73,8 +74,7 @@ export default function MovieWatchPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Navbar />
-
+      {/* Video Player Section */}
       <div className="pt-16">
         {/* Zone player type "hero" */}
         <div className="bg-gradient-to-b from-black via-black/80 to-black">

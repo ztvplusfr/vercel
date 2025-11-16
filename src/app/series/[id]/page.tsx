@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
 import { tmdbApi, TMDBTVShow, TMDBCastMember, TMDBImage, TMDBEpisode } from '@/lib/tmdb';
 import Image from 'next/image';
 import { Share2 } from 'lucide-react';
@@ -20,11 +19,37 @@ export default function TVShowDetailPage() {
   const [tvShow, setTvShow] = useState<TMDBTVShow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedSeason, setSelectedSeason] = useState<number>(1);
+  const [selectedSeason, setSelectedSeason] = useState(1);
   const [episodes, setEpisodes] = useState<TMDBEpisode[]>([]);
+  const [episodesLoading, setEpisodesLoading] = useState(true);
   const [episodesWithVideos, setEpisodesWithVideos] = useState<Set<number>>(new Set());
   const [episodesWithoutVideos, setEpisodesWithoutVideos] = useState<Set<number>>(new Set());
-  const [episodesLoading, setEpisodesLoading] = useState(false);
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: tvShow?.name || 'Série',
+          text: `Regarde "${tvShow?.name}" sur ZTVPlus!`,
+          url: window.location.href
+        });
+      } catch (err) {
+        console.log('Partage annulé');
+      }
+    } else {
+      // Fallback pour les navigateurs qui ne supportent pas Web Share API
+      navigator.clipboard.writeText(window.location.href);
+      alert('Lien copié dans le presse-papiers!');
+    }
+  };
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  useEffect(() => {
+    setEpisodesLoading(false);
+  }, []);
 
   useEffect(() => {
     const fetchTVShow = async () => {
@@ -105,7 +130,6 @@ export default function TVShowDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white">
-        <Navbar />
         <div className="pt-16 flex items-center justify-center min-h-screen">
           <div className="text-xl">Chargement...</div>
         </div>
@@ -116,7 +140,6 @@ export default function TVShowDetailPage() {
   if (error || !tvShow) {
     return (
       <div className="min-h-screen bg-black text-white">
-        <Navbar />
         <div className="pt-16 flex items-center justify-center min-h-screen">
           <div className="text-xl text-red-500">{error || 'Série non trouvée'}</div>
         </div>
@@ -129,7 +152,6 @@ export default function TVShowDetailPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Navbar />
 
       {/* Hero Section */}
       <div className="relative h-[70vh]">
@@ -200,7 +222,7 @@ export default function TVShowDetailPage() {
                   {tvShow.overview}
                 </p>
 
-                <button className="flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 bg-gray-700 bg-opacity-80 text-white rounded-md hover:bg-gray-600 transition-colors text-sm md:text-base">
+                <button onClick={handleShare} className="flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 bg-gray-700 bg-opacity-80 text-white rounded-md hover:bg-gray-600 transition-colors text-sm md:text-base">
                   <Share2 className="w-5 h-5 md:w-6 md:h-6" />
                   <span>Partager</span>
                 </button>

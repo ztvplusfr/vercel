@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Navbar } from '@/components/Navbar';
+import { tmdbApi, TMDBMovie, TMDBTVShow } from '@/lib/tmdb';
 import { HeroSection } from '@/components/HeroSection';
-import { CarouselRow } from '@/components/CarouselRow';
+import { ContentRow } from '@/components/ContentRow';
 import { RankedRow } from '@/components/RankedRow';
-import { tmdbApi, TMDBContent } from '@/lib/tmdb';
+import { CarouselRow } from '@/components/CarouselRow';
 
 export default function Home() {
   const [trending, setTrending] = useState<TMDBContent[]>([]);
@@ -74,9 +74,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <Navbar />
-      {/* Hero directement sous le navbar (le navbar le recouvre légèrement) */}
+    <div className="min-h-screen bg-black text-white">
       <HeroSection />
 
       {/* Décalage du reste de la page sous le navbar, avec espace réduit */}

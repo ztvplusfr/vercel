@@ -1,36 +1,44 @@
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { Navbar } from '@/components/Navbar'
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
-export const viewport: Viewport = {
-  themeColor: "#38bdf8",
-};
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "ZTVPlus",
-  description:
-    "ZTVPlus - Votre plateforme de streaming inspirée de Netflix, propulsée par Next.js et TMDB",
-  other: {
-    "msapplication-navbutton-color": "#38bdf8",
-    "apple-mobile-web-app-status-bar-style": "black-translucent",
+  title: 'ZTVPlus - Streaming Platform',
+  description: 'Plateforme de streaming de films et séries',
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
   },
-};
+  manifest: '/site.webmanifest',
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="fr">
-      <body className={`${inter.variable} font-sans antialiased`}>
-        {children}
+      <head>
+        <link rel="icon" href="/favicon.png" />
+        <link rel="shortcut icon" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/favicon.png" />
+      </head>
+      <body className={inter.className}>
+        <div className="min-h-screen bg-black text-white">
+          <Navbar />
+          <div className="bg-yellow-600/90 text-yellow-50 px-4 py-2 text-center text-sm font-medium border-b border-yellow-700">
+            ⚠️ Certains programmes peuvent ne pas être disponibles - Disponibilité variable selon les régions
+          </div>
+          <main className="flex-1">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
-  );
+  )
 }
