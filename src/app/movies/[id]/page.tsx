@@ -74,19 +74,34 @@ export default function MovieDetailPage() {
     }
   }, [movie?.title]);
 
-  // Vérifier si des sources vidéo existent pour ce film (R2)
+  // Vérifier si des sources vidéo existent pour ce film (client-side direct)
   useEffect(() => {
     const checkVideos = async () => {
       if (!movie) return;
 
       try {
-        const res = await fetch(`/api/movies/${movie.id}`);
-        if (!res.ok) {
+        // Appel direct à l'API Wiflix depuis le client
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+        
+        const response = await fetch(`https://api.movix.club/api/wiflix/movie/${movie.id}`, {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
           setHasVideos(false);
           return;
         }
-        const data = await res.json();
-        setHasVideos(Array.isArray(data.videos) && data.videos.length > 0);
+        
+        const data = await response.json();
+        
+        // Vérifier s'il y a des sources dans players.vf ou players.vostfr
+        const hasVF = data.players?.vf && Array.isArray(data.players.vf) && data.players.vf.length > 0;
+        const hasVOSTFR = data.players?.vostfr && Array.isArray(data.players.vostfr) && data.players.vostfr.length > 0;
+        
+        setHasVideos(hasVF || hasVOSTFR);
       } catch {
         setHasVideos(false);
       }
